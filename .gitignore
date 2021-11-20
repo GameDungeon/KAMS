@@ -133,4 +133,4 @@ dmypy.json
 
 *.kam
 kams.cfg
-test_files/
+testfiles/

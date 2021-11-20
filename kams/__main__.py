@@ -38,7 +38,6 @@ def parse_file(file, suple, already=None):
                                 importing.append(x)
                                 already.append(x)
                             break
-                        print(x)
                     else:
                         raise ValueError(f"Invalid Import: {line}")
                 else:
@@ -66,9 +65,6 @@ def compile_code():#file):
 
         with open(f"{file[:-4]}.txt", "w") as f:
             f.write(out)
-
-
-    
 
 @click.group(
     cls=DefaultGroup,
