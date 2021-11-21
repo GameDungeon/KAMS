@@ -1,18 +1,18 @@
 from typing import Optional
 from .utils.datatypes import Index
 
-from glob import glob
+from pathlib import Path
+
 import re
 import click
 from click_default_group import DefaultGroup
 
-def get_files():#file):
-    files = glob( "**/*.kam", recursive=True)
-
+def get_files(directory):
+    files = directory.rglob( "**/*.kam")
     split_list = Index()
 
     for f in files:
-        split_list['_' in f].add(f) 
+        split_list[f.stem[0] == "_"].add(f) 
 
     return split_list[0], split_list[1]
 
@@ -31,13 +31,11 @@ def parse_file(file, suple, already=None):
             if line and line[0] == "@":
                 if line.find("import") == 1:
                     path = re.findall('"(.*?)"', line)[0]
-                    
-                    for x in suple:
-                        if x.replace("_", "").replace("\\", "/").replace(".kam", "") == path:
-                            if x not in already:
-                                importing.append(x)
-                                already.append(x)
-                            break
+                    x = (file.parent / Path(path + '.kam').parent / ("_" + str(Path(path + '.kam').name))).resolve()
+                    if x.exists():
+                        if x not in already:
+                            importing.append(x)
+                            already.append(x)
                     else:
                         raise ValueError(f"Invalid Import: {line}")
                 else:
@@ -51,19 +49,17 @@ def parse_file(file, suple, already=None):
     return out_lines
 
 @click.command(name="compile")
-#@click.argument('file', type=click.Path(exists=True), required=False)
-def compile_code():#file):
-    #get_config()
-    #if not file:
-    #    file = '.'
+@click.argument('directory', type=click.Path(exists=True, file_okay=False, dir_okay=True), required=False)
+def compile_code(directory):
 
-    base, suple = get_files()#file)
+    directory = Path(directory if directory else ".")
 
+    base, suple = get_files(directory)
 
     for file in base:
         out = "\n".join(parse_file(file, suple))
 
-        with open(f"{file[:-4]}.txt", "w") as f:
+        with open(f"{str(file)[:-4]}.txt", "w") as f:
             f.write(out)
 
 @click.group(
